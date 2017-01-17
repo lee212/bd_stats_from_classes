@@ -55,6 +55,14 @@ class bdStatsClasses(object):
             json.dump(data, f)
         f.close()
 
+    def separate_item(self, items):
+        item = items.split("\n")
+        if len(item) == 1:
+            item = item[0].split(",")
+        item = [ x.strip() for x in item ]
+        item = [ x.lower() for x in item ]
+        return item
+
     def stats_two(self):
         """for fall 15 csv files"""
         """where id, title, technology*, user interface language, backend
@@ -63,16 +71,13 @@ class bdStatsClasses(object):
         m = 0
         c = Counter()
         for i in self.raw_data:
-            items = i['Technology*']
-            item = items.split("\n")
-            item = [ x.lower() for x in item ]
-            m = self.mean([m, len(item)])
-            c2 = Counter(item)
+            item = self.separate_item(i['Technology*'])
+            lang = self.separate_item(i['User Interface Language'])
+            env = self.separate_item(i['Backend Environment**'])
+            tech = item + lang + env
+            m = self.mean([m, len(tech)])
+            c2 = Counter(tech)
             c += c2
-
-            lang = i['User Interface Language']
-            env = i['Backend Environment**']
-            data = i['Dataset URL']
 
         res = { 
                 "techonologies": c,
@@ -82,12 +87,13 @@ class bdStatsClasses(object):
         self.result = res
         return res
 
-
 if __name__ == "__main__":
 
     stat = bdStatsClasses()
     stat.load_csv(sys.argv[1])
     #res = stat.stats()
     #pprint (res)
-    res = stat.create_domain_json('fall15')
-    stat.save_json('fall15.json', res)
+    #res = stat.create_domain_json('fall15')
+    #stat.save_json('fall15.json', res)
+    res = stat.stats_two()
+    pprint (res)
